@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "source_sha256": "546da660b7f1cc347a1c6bf026e41f8aa910f8d08466817dbee352a5aabd0e9b",
+  "cards": [
+    {
+      "id": "local-only",
+      "kind": "fact",
+      "text": "The user requires local processing.",
+      "human_confirmed": true,
+      "references": [
+        {
+          "node_id": "u1",
+          "start": 12,
+          "end": 28
+        }
+      ]
+    },
+    {
+      "id": "parser",
+      "kind": "goal",
+      "text": "Build a CSV parser.",
+      "human_confirmed": false,
+      "references": [
+        {
+          "node_id": "u2",
+          "start": 0,
+          "end": 18
+        }
+      ]
+    },
+    {
+      "id": "implementation",
+      "kind": "todo",
+      "text": "Evaluate the suggested standard-library parser.",
+      "human_confirmed": false,
+      "references": [
+        {
+          "node_id": "a2",
+          "start": 0,
+          "end": 19
+        }
+      ]
+    }
+  ]
+}
