@@ -1,5 +1,6 @@
 import argparse,json,sys,html
 from pathlib import Path
+from . import briefing
 from .core import load,conversations,inspect,plan,verify,PortError
 
 def write_new(path,text):
@@ -12,11 +13,24 @@ def main():
         q=sub.add_parser(name);q.add_argument('input');q.add_argument('--conversation',required=True)
         if name in {'pack','report'}:q.add_argument('--budget',type=int,default=12000);q.add_argument('--pin',action='append',default=[]);q.add_argument('--out',required=True)
         if name=='verify':q.add_argument('bundle')
+    for name in ['brief-template','brief-build','brief-verify','brief-text']:
+        q=sub.add_parser(name);q.add_argument('input');q.add_argument('--conversation',required=True)
+        if name=='brief-build':q.add_argument('specification');q.add_argument('--budget',type=int,default=12000);q.add_argument('--pin',action='append',default=[])
+        if name in {'brief-verify','brief-text'}:q.add_argument('bundle')
+        if name!='brief-verify':q.add_argument('--out',required=True)
     args=p.parse_args()
     try:
         conv=conversations(load(args.input)).get(args.conversation)
         if conv is None:raise ValueError('Conversation ID not found.')
-        if args.command=='audit':
+        if args.command.startswith('brief-'):
+            if args.command=='brief-template':result=briefing.template(conv)
+            elif args.command=='brief-build':result=briefing.build(conv,load(args.specification),args.budget,args.pin)
+            elif args.command=='brief-verify':result=briefing.verify(conv,load(args.bundle))
+            else:result=briefing.markdown(conv,load(args.bundle))
+            if args.command!='brief-verify':
+                briefing.write_new(args.out,result if type(result) is str else json.dumps(result,ensure_ascii=False,separators=(',',':'))+'\n')
+                result={'written':True,'scope':briefing.SCOPE}
+        elif args.command=='audit':
             result=inspect(conv);result={'source_sha256':result['source_sha256'],'current_node':result['current_node'],'path':result['path'],'nodes':[{k:v for k,v in n.items() if k!='text'} for n in result['nodes'].values()]}
         elif args.command=='verify':result=verify(conv,load(args.bundle))
         else:
@@ -32,7 +46,7 @@ def main():
         print(json.dumps(result,ensure_ascii=False,indent=2))
     except PortError as e:
         print('Error: '+str(e),file=sys.stderr);return 2
-    except (ValueError,TypeError,KeyError,OSError):
+    except (ValueError,TypeError,KeyError,OSError,RecursionError):
         print('Error: Input, output or schema could not be processed. Check the supplied files and options.',file=sys.stderr);return 2
     return 0
 if __name__=='__main__':sys.exit(main())
