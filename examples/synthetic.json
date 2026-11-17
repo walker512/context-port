@@ -1,0 +1,107 @@
+[
+  {
+    "id": "synthetic-1",
+    "title": "Synthetic example, not a real user conversation",
+    "current_node": "a2",
+    "mapping": {
+      "root": {
+        "id": "root",
+        "parent": null,
+        "children": [
+          "u1"
+        ],
+        "message": null
+      },
+      "u1": {
+        "id": "u1",
+        "parent": "root",
+        "children": [
+          "a1"
+        ],
+        "message": {
+          "author": {
+            "role": "user"
+          },
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Use Python. Keep data local."
+            ]
+          }
+        }
+      },
+      "a1": {
+        "id": "a1",
+        "parent": "u1",
+        "children": [
+          "u2",
+          "alternate"
+        ],
+        "message": {
+          "author": {
+            "role": "assistant"
+          },
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Understood."
+            ]
+          }
+        }
+      },
+      "u2": {
+        "id": "u2",
+        "parent": "a1",
+        "children": [
+          "a2"
+        ],
+        "message": {
+          "author": {
+            "role": "user"
+          },
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Make a CSV parser.",
+              {
+                "asset_pointer": "file-service://missing-synthetic.csv"
+              }
+            ]
+          }
+        }
+      },
+      "a2": {
+        "id": "a2",
+        "parent": "u2",
+        "children": [],
+        "message": {
+          "author": {
+            "role": "assistant"
+          },
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Use csv.DictReader."
+            ]
+          }
+        }
+      },
+      "alternate": {
+        "id": "alternate",
+        "parent": "a1",
+        "children": [],
+        "message": {
+          "author": {
+            "role": "user"
+          },
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Use JavaScript instead."
+            ]
+          }
+        }
+      }
+    }
+  }
+]
