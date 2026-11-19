@@ -112,7 +112,8 @@ def plan(conv,budget=12000,pins=()):
     if not isinstance(pins,(list,tuple)) or any(not isinstance(x,str) for x in pins) or len(set(pins))!=len(pins):raise PortError('Pins must be unique node IDs.')
     parsed=inspect(conv);nodes=parsed['nodes'];path=parsed['path']
     eligible=[n for n in path if nodes[n]['role'] in {'user','assistant'} and nodes[n]['text'] and 'unsupported-content-type' not in nodes[n]['warnings']]
-    if any(n not in eligible for n in pins):raise PortError('Pinned node is not eligible text on the selected branch.')
+    active_ids=set(path);eligible_ids=set(eligible)
+    if any(n not in eligible_ids for n in pins):raise PortError('Pinned node is not eligible text on the selected branch.')
     selected=set(pins);used=sum(len(nodes[n]['text']) for n in pins)
     if used>budget:raise PortError('Pinned text exceeds budget; nothing is silently unpinned.')
     # Keep a contiguous suffix of eligible messages, plus explicit pins. Stop
@@ -125,7 +126,7 @@ def plan(conv,budget=12000,pins=()):
     if not selected:raise PortError('No complete message fits the budget. Increase budget; text is never truncated.')
     coverage=[]
     for nid,n in nodes.items():
-        reason='selected' if nid in selected else 'off-branch' if nid not in path else 'structural-node' if not n['has_message'] else 'unsupported-or-empty' if nid not in eligible else 'budget-omission'
+        reason='selected' if nid in selected else 'off-branch' if nid not in active_ids else 'structural-node' if not n['has_message'] else 'unsupported-or-empty' if nid not in eligible_ids else 'budget-omission'
         coverage.append({'node_id':nid,'disposition':reason,'warnings':n['warnings'],'text_sha256':n['text_sha256']})
     return {'format':'context-port-v1','source_sha256':parsed['source_sha256'],'conversation_id':conv.get('id') or conv['conversation_id'],'current_node':parsed['current_node'],'budget_characters':budget,'pins':list(pins),'selected_text_characters':used,'messages':[{k:nodes[n][k] for k in ('node_id','role','text','text_sha256')} for n in path if n in selected],'coverage':coverage,'limitations':['Extractive selection, not semantic summarization or fact verification.','Budget counts selected Unicode text characters, not tokens or surrounding JSON/report overhead.','Attachments and non-text content are not transferred or checked for existence.','Metadata, tool/system roles and alternate branches are excluded from the context.','No platform import or continued-model-behavior guarantee. Review before sharing.']}
 
