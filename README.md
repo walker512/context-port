@@ -21,9 +21,30 @@ Open review.html locally. In this fictional example a small budget drops interme
 
 Outputs must not already exist. The source remains unchanged. The report includes selected private text: preview it before sharing or uploading to another service. The JSON package is a reviewable data format, **not a native import file for another platform**.
 
+## Create an editable handoff with exact quotes
+
+Use the same fictional conversation to build a brief from a human-written spec,
+verify it against the original, and export Markdown you can review and copy:
+
+```sh
+python -m contextport brief-build examples/synthetic.json examples/briefing-spec.json --conversation synthetic-1 --out briefing.json
+python -m contextport brief-verify examples/synthetic.json briefing.json --conversation synthetic-1
+python -m contextport brief-text examples/synthetic.json briefing.json --conversation synthetic-1 --out handoff.md
+```
+
+Open `handoff.md` in a local text editor. The example includes a goal, a fact
+marked as confirmed in the fictional spec, and a to-do, each with quoted source
+text. Verification checks that the quotes and the bundle match the supplied
+source and spec. It does not check whether a quote supports a claim or whether
+that claim is true.
+
+To write your own cards, start with the [editable handoff guide](docs/EDITABLE_HANDOFF.md).
+Review both outputs before sharing: JSON retains selected original messages,
+and Markdown still contains excerpts. Nothing is sent or imported automatically.
+
 ## Boundaries
 
-- Input: a supplied JSON array containing ChatGPT-style mapping/current_node records, maximum 32 MiB and 10000 nodes per conversation. ZIP, Claude, Gemini and other schemas are not supported in this candidate.
+- Input: a supplied JSON array containing ChatGPT-style mapping/current_node records, maximum 32 MiB and 10000 nodes per conversation. ZIP, Claude, Gemini and other schemas are not supported.
 - Missing current_node, cycles, broken parent/child links and duplicate JSON keys stop processing; no branch is guessed.
 - The planner keeps a contiguous suffix of eligible user/assistant text messages plus explicit pins. It never truncates a message or automatically invents a summary. Pins can create context gaps; those omissions remain visible.
 - A coverage row describes every mapping node: selected, off-branch, structural, unsupported/empty or budget omission. Non-text parts, unsupported content types, excluded roles and metadata are marked. This does not enumerate every unknown export field or recover content absent from the export.
@@ -49,11 +70,11 @@ If pins exceed the budget or no complete message fits, planning stops rather tha
 
 ## Validation and remaining limits
 
-The unchanged runtime was tested privately on Python 3.11 and 3.13: Linux and macOS 15 Intel each executed all 29 regression tests; Windows executed 28 and skipped the FIFO test because `os.mkfifo` is unavailable. Skipping that test is not Windows FIFO security verification. Apple Silicon was not tested.
+The original planner was tested privately on Python 3.11 and 3.13: Linux and macOS 15 Intel each executed all 29 regression tests; Windows executed 28 and skipped the FIFO test because `os.mkfifo` is unavailable. Skipping that test is not Windows FIFO security verification. Apple Silicon was not tested.
 
-The extracted frozen package passed 16 CLI/static-report browser checks with Chromium sandbox enabled. Reports at 1500px and 390px were independently inspected. These are synthetic fixtures, not real-user conversations, real-phone testing, full accessibility testing or destination import tests. Independent safety review covered strict numeric-versus-boolean verification, finite-number/depth handling, special-file refusal and content-free error messages. The 29 synthetic regression tests are included under tests/; private CI artifacts are not distributed.
+The extracted frozen package passed 16 CLI/static-report browser checks with Chromium sandbox enabled. Reports at 1500px and 390px were independently inspected. These are synthetic fixtures, not real-user conversations, real-phone testing, full accessibility testing or destination import tests. Independent safety review covered strict numeric-versus-boolean verification, finite-number/depth handling, special-file refusal and content-free error messages. The 29 original planner regressions are included under `tests/`; private CI artifacts are not distributed.
 
-The current candidate adds the public synthetic regression suite and updates documentation; its runtime is unchanged from the tested version. The final source ZIP is separately extracted and smoke-tested before handoff; no new cross-platform or browser run is implied by that packaging check.
+These historical results cover the original planner, not a fresh cross-platform run of the editable brief. See the [brief validation scope](docs/EDITABLE_HANDOFF.md#privacy-and-validation) for its synthetic checks.
 
 Outputs intentionally contain selected conversation text, node identifiers and hashes; **identifiers and hashes are not anonymization**. Review all generated material before sharing. A hash is not a signature: someone able to replace both source and package can produce a matching pair. There is no redaction, encryption, secure deletion, authenticity check or truth/semantic verification.
 
@@ -71,4 +92,4 @@ python -m unittest discover -s tests -v
 
 The suite uses only Python's standard library and temporary synthetic files. It covers active-branch selection, complete-message budgets and pins, per-node coverage, malformed graphs/JSON, changed source/package rejection, numeric/boolean type confusion, non-finite numbers including exponent overflow, bounded nesting, FIFO/symlink refusal, sanitized errors, and the CLI pack/verify/report/no-overwrite loop. The fixture is constructed in tests/test_contextport.py; examples/synthetic.json is the separate runnable demo. Neither contains real conversations or secrets.
 
-FIFO testing skips on platforms without os.mkfifo; symlink testing skips if the OS disallows creating one. Read skip messages: a skipped case is not a pass for that capability. The current ZIP's suite was run from a fresh extraction locally; historical cross-platform results above apply to the unchanged runtime and equivalent private test suite, not a new run of this ZIP on all platforms.
+FIFO testing skips on platforms without os.mkfifo; symlink testing skips if the OS disallows creating one. Read skip messages: a skipped case is not a pass for that capability. The public suite also covers brief creation, verification and Markdown export using synthetic data.
